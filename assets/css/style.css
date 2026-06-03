@@ -116,3 +116,16 @@ footer a { color: var(--hpri-red); text-decoration: none; }
   .control-group { min-width: unset; width: 100%; }
   .chart-container { height: 280px; }
 }
+
+/* ---- Multi-select controls ---- */
+select[multiple] {
+  height: auto;
+  min-height: 120px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .25rem;
+}
+select[multiple] option:checked {
+  background: var(--hpri-red);
+  color: #fff;
+}

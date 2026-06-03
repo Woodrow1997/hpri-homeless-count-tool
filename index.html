@@ -32,6 +32,15 @@
 
       <div class="controls">
         <div class="control-group">
+          <label for="mode-select">Mode</label>
+          <select id="mode-select">
+            <option value="single">Single view</option>
+            <option value="compare-demo">Compare demographics</option>
+            <option value="compare-geo">Compare geographies</option>
+          </select>
+        </div>
+
+        <div class="control-group" id="geo-group">
           <label for="geo-select">Geography</label>
           <select id="geo-select">
             <option value="coc">LA Continuum of Care (CoC)</option>
@@ -55,9 +64,9 @@
           </select>
         </div>
 
-        <div class="control-group">
-          <label for="var-select">Demographic Variable</label>
-          <select id="var-select">
+        <div class="control-group" id="var-group">
+          <label for="var-select" id="var-label">Demographic Variable</label>
+          <select id="var-select" size="1">
             <optgroup label="Total">
               <option value="total">Total Unsheltered Adults</option>
             </optgroup>
@@ -82,6 +91,24 @@
               <option value="chronic">Chronically Homeless</option>
             </optgroup>
           </select>
+          <p id="multi-hint" style="display:none;font-size:.75rem;color:var(--muted);margin-top:.35rem">Hold Ctrl (Cmd on Mac) to select multiple</p>
+        </div>
+
+        <div class="control-group" id="geo-multi-group" style="display:none">
+          <label for="geo-multi-select">Geographies to compare</label>
+          <select id="geo-multi-select" multiple size="5">
+            <option value="coc" selected>LA Continuum of Care (CoC)</option>
+            <option value="city">City of Los Angeles</option>
+            <option value="spa1">SPA 1 — Antelope Valley</option>
+            <option value="spa2">SPA 2 — San Fernando Valley</option>
+            <option value="spa3">SPA 3 — San Gabriel Valley</option>
+            <option value="spa4">SPA 4 — Metro Los Angeles</option>
+            <option value="spa5">SPA 5 — West Side</option>
+            <option value="spa6">SPA 6 — South</option>
+            <option value="spa7">SPA 7 — East LA</option>
+            <option value="spa8">SPA 8 — South Bay</option>
+          </select>
+          <p style="font-size:.75rem;color:var(--muted);margin-top:.35rem">Hold Ctrl (Cmd on Mac) to select multiple</p>
         </div>
       </div>
 

@@ -13,181 +13,158 @@ document.querySelectorAll('.nav-link').forEach(link => {
   });
 });
 
+// ── COLOR PALETTE ───────────────────────────────────────────────────────────
+const PALETTE = [
+  { line: '#383838', ci: 'rgba(56,56,56,0.12)' },
+  { line: '#c65c00', ci: 'rgba(198,92,0,0.12)' },
+  { line: '#2c6e9e', ci: 'rgba(44,110,158,0.12)' },
+  { line: '#2a7a3b', ci: 'rgba(42,122,59,0.12)' },
+  { line: '#8b2fc9', ci: 'rgba(139,47,201,0.12)' },
+];
+const BREAK_COLOR = '#c65c00';
+
 // ── CHART SETUP ─────────────────────────────────────────────────────────────
 let chart = null;
 
-const COLORS = {
-  line: '#990000',
-  ci: 'rgba(153,0,0,0.12)',
-  lineBreak1: '#990000',
-  lineBreak2: '#cc6600',
-  ci2: 'rgba(204,102,0,0.12)'
-};
-
-function buildChartDatasets(geo, variable) {
+// Build datasets for a SINGLE variable + single geography
+function singleDatasets(variable, geoKey, colorIdx) {
   const varData = DATA[variable];
-  if (!varData) {
-    console.warn('Variable not found in data:', variable);
-    return { datasets: [], labels: YEARS.map(String) };
-  }
+  if (!varData) return [];
 
-  // Determine which geo data to use
-  let geoData = null;
-  if (geo === 'coc') {
-    geoData = varData.geographies.coc;
-  } else if (geo === 'city') {
-    geoData = varData.geographies.city || varData.geographies.coc; // fallback
-  } else if (geo === 'county') {
-    geoData = varData.geographies.county || varData.geographies.coc;
-  } else if (geo.startsWith('spa')) {
-    const spaNum = parseInt(geo.replace('spa', ''));
-    geoData = varData.geographies.spa ? varData.geographies.spa[spaNum] : varData.geographies.coc;
-  }
+  const geoData = resolveGeo(varData, geoKey);
+  if (!geoData) return [];
 
-  if (!geoData) {
-    console.warn('Geo data not found:', geo, 'for variable:', variable);
-    return { datasets: [], labels: YEARS.map(String) };
-  }
-
+  const col = PALETTE[colorIdx % PALETTE.length];
+  const label = varData.label + (colorIdx > 0 ? '' : '');
   const harmKey = varData.harmonization;
-  const labels = YEARS.map(String);
 
   if (!harmKey) {
-    // Clean trend — single line with CI band
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'CI Band',
-          data: geoData.upper95,
-          fill: '+1',
-          borderWidth: 0,
-          backgroundColor: COLORS.ci,
-          pointRadius: 0,
-          tension: 0.3
-        },
-        {
-          label: 'Lower CI',
-          data: geoData.lower95,
-          fill: false,
-          borderWidth: 0,
-          borderColor: 'transparent',
-          pointRadius: 0,
-          tension: 0.3
-        },
-        {
-          label: varData.label,
-          data: geoData.estimate,
-          borderColor: COLORS.line,
-          backgroundColor: COLORS.line,
-          borderWidth: 2.5,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          tension: 0.3,
-          fill: false
-        }
-      ]
-    };
+    // Simple: one CI band + one estimate line
+    const ds = [];
+    if (geoData.lower95 && geoData.lower95.some(v => v !== null)) {
+      ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
+      ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '-1', backgroundColor: col.ci, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
+    }
+    ds.push({
+      label,
+      data: geoData.estimate,
+      borderColor: col.line, backgroundColor: col.line,
+      borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
+      tension: 0.2, fill: false, spanGaps: true
+    });
+    return ds;
   }
 
-  // Has harmonization break — single line with color change at break year
-  // Simple, reliable: Chart.js segment option colors different parts of the line
+  // Harmonized: single line with color segment at break year
   const note = HARMONIZATION_NOTES[harmKey];
   const breakYr = note.breakYear;
-  const breakIdx = YEARS.indexOf(breakYr);
+  const ds = [];
 
-  // CI band (full width, single color)
-  const hasCi = geoData.lower95.some(v => v !== null);
-  const datasets = [];
-
-  if (hasCi) {
-    // Upper CI
-    datasets.push({
-      label: '_ci_hi',
-      data: geoData.upper95,
-      fill: false,
-      borderWidth: 0,
-      borderColor: 'transparent',
-      backgroundColor: 'transparent',
-      pointRadius: 0,
-      tension: 0.2,
-      spanGaps: true
-    });
-    // Lower CI — fill to upper
-    datasets.push({
-      label: '_ci_lo',
-      data: geoData.lower95,
-      fill: '-1',
-      backgroundColor: 'rgba(56,56,56,0.10)',
-      borderWidth: 0,
-      borderColor: 'transparent',
-      pointRadius: 0,
-      tension: 0.2,
-      spanGaps: true
-    });
+  if (geoData.lower95 && geoData.lower95.some(v => v !== null)) {
+    ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
+    ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '-1', backgroundColor: 'rgba(56,56,56,0.09)', borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
   }
-
-  // Main estimate line — color changes at break year via segment option
-  datasets.push({
-    label: varData.label,
+  ds.push({
+    label: label + ' ⚠',
     data: geoData.estimate,
-    borderWidth: 2.5,
-    pointRadius: 5,
-    pointHoverRadius: 7,
-    tension: 0.2,
-    fill: false,
-    spanGaps: true,
+    borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
+    tension: 0.2, fill: false, spanGaps: true,
     segment: {
-      borderColor: ctx => YEARS[ctx.p1DataIndex] >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1,
+      borderColor: ctx => YEARS[ctx.p1DataIndex] >= breakYr ? BREAK_COLOR : col.line,
       borderDash: ctx => YEARS[ctx.p1DataIndex] >= breakYr ? [6, 3] : [],
     },
-    pointBackgroundColor: YEARS.map(yr => yr >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1),
-    pointBorderColor: YEARS.map(yr => yr >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1),
+    pointBackgroundColor: YEARS.map(yr => yr >= breakYr ? BREAK_COLOR : col.line),
+    pointBorderColor: YEARS.map(yr => yr >= breakYr ? BREAK_COLOR : col.line),
   });
-
-  return { labels, datasets };
+  return ds;
 }
 
+function resolveGeo(varData, geoKey) {
+  if (!varData || !varData.geographies) return null;
+  const g = varData.geographies;
+  if (geoKey === 'coc') return g.coc || null;
+  if (geoKey === 'city') return g.city || g.coc || null;
+  if (geoKey === 'county') return g.county || null;
+  if (geoKey.startsWith('spa')) {
+    const n = parseInt(geoKey.replace('spa',''));
+    return g.spa && g.spa[n] ? g.spa[n] : null;
+  }
+  return g.coc || null;
+}
+
+// ── MAIN RENDER ─────────────────────────────────────────────────────────────
 function renderChart() {
-  const geoSelect  = document.getElementById('geo-select');
-  const varSelect  = document.getElementById('var-select');
-  const spaGroup   = document.getElementById('spa-group');
-  const spaSelect  = document.getElementById('spa-select');
+  const mode = document.getElementById('mode-select').value;
+  const geoEl = document.getElementById('geo-select');
+  const spaEl = document.getElementById('spa-select');
+  const varEl = document.getElementById('var-select');
+  const geoMultiEl = document.getElementById('geo-multi-select');
 
-  let geo = geoSelect.value;
-  if (geo === 'spa') geo = 'spa' + spaSelect.value;
+  // Show/hide UI groups
+  document.getElementById('geo-group').style.display = mode === 'compare-geo' ? 'none' : 'flex';
+  document.getElementById('spa-group').style.display = (mode === 'single' && geoEl.value === 'spa') ? 'flex' : 'none';
+  document.getElementById('geo-multi-group').style.display = mode === 'compare-geo' ? 'flex' : 'none';
+  document.getElementById('multi-hint').style.display = mode === 'compare-demo' ? 'block' : 'none';
+  varEl.size = mode === 'compare-demo' ? 8 : 1;
+  varEl.multiple = mode === 'compare-demo';
 
-  const variable = varSelect.value;
-  const varData  = DATA[variable];
+  // Determine what to plot
+  let allDatasets = [];
+  let titleParts = [];
+  let showHarmAlert = false;
 
-  // Show/hide SPA sub-selector
-  spaGroup.style.display = (geoSelect.value === 'spa') ? 'flex' : 'none';
+  if (mode === 'single') {
+    const geoKey = geoEl.value === 'spa' ? 'spa' + spaEl.value : geoEl.value;
+    const variable = varEl.value;
+    const varData = DATA[variable];
+    if (varData && varData.harmonization) showHarmAlert = varData.harmonization;
+    allDatasets = singleDatasets(variable, geoKey, 0);
+    titleParts = [varData ? varData.label : variable, geoEl.options[geoEl.selectedIndex].text];
+
+  } else if (mode === 'compare-demo') {
+    const geoKey = geoEl.value === 'spa' ? 'spa' + spaEl.value : geoEl.value;
+    const selected = Array.from(varEl.selectedOptions).map(o => o.value);
+    selected.forEach((variable, i) => {
+      const varData = DATA[variable];
+      if (!varData) return;
+      if (varData.harmonization) showHarmAlert = varData.harmonization;
+      allDatasets = allDatasets.concat(singleDatasets(variable, geoKey, i));
+    });
+    titleParts = [selected.map(v => DATA[v] ? DATA[v].label : v).join(' vs '), geoEl.options[geoEl.selectedIndex].text];
+
+  } else if (mode === 'compare-geo') {
+    const variable = varEl.value;
+    const varData = DATA[variable];
+    if (varData && varData.harmonization) showHarmAlert = varData.harmonization;
+    const selectedGeos = Array.from(geoMultiEl.selectedOptions).map(o => o.value);
+    selectedGeos.forEach((geoKey, i) => {
+      const geoLabel = geoMultiEl.querySelector(`option[value="${geoKey}"]`).text;
+      const ds = singleDatasets(variable, geoKey, i);
+      // Rename the estimate line to include geo label
+      ds.filter(d => d.label && !d.label.startsWith('_')).forEach(d => d.label = geoLabel);
+      allDatasets = allDatasets.concat(ds);
+    });
+    titleParts = [varData ? varData.label : variable, 'Geography comparison'];
+  }
 
   // Harmonization alert
   const alertEl = document.getElementById('harm-alert');
-  if (varData && varData.harmonization) {
-    const note = HARMONIZATION_NOTES[varData.harmonization];
+  if (showHarmAlert) {
+    const note = HARMONIZATION_NOTES[showHarmAlert];
     alertEl.querySelector('.harm-text').textContent = note.note;
     alertEl.classList.add('visible');
   } else {
     alertEl.classList.remove('visible');
   }
 
-  // Chart title
-  const geoLabel = geoSelect.options[geoSelect.selectedIndex].text +
-    (geoSelect.value === 'spa' ? ' — ' + spaSelect.options[spaSelect.selectedIndex].text : '');
-  document.getElementById('chart-title').textContent =
-    (varData ? varData.label : 'Unsheltered Adults') + ' · ' + geoLabel;
+  document.getElementById('chart-title').textContent = titleParts.join(' · ');
 
-  // Build datasets
-  const { labels, datasets } = buildChartDatasets(geo, variable);
-
+  // Render
   const ctx = document.getElementById('main-chart').getContext('2d');
   if (chart) chart.destroy();
-
   chart = new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets },
+    data: { labels: YEARS.map(String), datasets: allDatasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -201,15 +178,13 @@ function renderChart() {
           }
         },
         tooltip: {
+          filter: item => item.parsed.y !== null && item.dataset.label && !item.dataset.label.startsWith('_'),
           callbacks: {
             label: ctx => {
-              if (ctx.dataset.label === 'Lower CI' || ctx.dataset.label?.includes('CI Band')) return null;
-              const val = ctx.parsed.y;
-              if (val === null) return null;
-              return ctx.dataset.label + ': ' + val.toLocaleString();
+              if (!ctx.parsed.y && ctx.parsed.y !== 0) return null;
+              return ctx.dataset.label.replace(' ⚠','') + ': ' + ctx.parsed.y.toLocaleString();
             }
-          },
-          filter: item => item.parsed.y !== null && item.dataset.label && !item.dataset.label.startsWith('_')
+          }
         }
       },
       scales: {
@@ -224,9 +199,10 @@ function renderChart() {
 }
 
 // ── EVENT LISTENERS ─────────────────────────────────────────────────────────
-document.getElementById('geo-select').addEventListener('change', renderChart);
-document.getElementById('var-select').addEventListener('change', renderChart);
-document.getElementById('spa-select').addEventListener('change', renderChart);
+['mode-select','geo-select','spa-select','var-select','geo-multi-select'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', renderChart);
+});
 
 // ── DATA LIBRARY ─────────────────────────────────────────────────────────
 function renderLibrary() {
