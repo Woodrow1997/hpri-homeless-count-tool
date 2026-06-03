@@ -9,6 +9,13 @@
 const YEARS = [2019, 2020, 2022, 2023, 2024, 2025];
 
 const HARMONIZATION_NOTES = {
+  nonveteran: {
+    label: "Non-Veterans",
+    harmonization: null,
+    geographies: {
+      coc: { label: "LA CoC", estimate: [36144,38236,40780,44703,43533,37354], lower95: [null,null,null,null,null,null], upper95: [null,null,null,null,null,null] }
+    }
+  },
   chronic: {
     breakYear: 2022,
     note: "The disability question structure changed in 2022, affecting the chronic homelessness flag. Trend lines are shown in two segments (pre-2022 and 2022–present)."
@@ -139,6 +146,13 @@ const DATA = {
     harmonization: null,
     geographies: {
       coc: { label: "LA CoC", estimate: [2768,2792,2677,2762,2026,2470], lower95: [null,null,null,null,null,null], upper95: [null,null,null,null,null,null] }
+    }
+  },
+  nonveteran: {
+    label: "Non-Veterans",
+    harmonization: null,
+    geographies: {
+      coc: { label: "LA CoC", estimate: [36144,38236,40780,44703,43533,37354], lower95: [null,null,null,null,null,null], upper95: [null,null,null,null,null,null] }
     }
   },
   chronic: {

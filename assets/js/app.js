@@ -26,7 +26,10 @@ const COLORS = {
 
 function buildChartDatasets(geo, variable) {
   const varData = DATA[variable];
-  if (!varData) return { datasets: [], labels: [] };
+  if (!varData) {
+    console.warn('Variable not found in data:', variable);
+    return { datasets: [], labels: YEARS.map(String) };
+  }
 
   // Determine which geo data to use
   let geoData = null;
@@ -41,7 +44,10 @@ function buildChartDatasets(geo, variable) {
     geoData = varData.geographies.spa ? varData.geographies.spa[spaNum] : varData.geographies.coc;
   }
 
-  if (!geoData) return { datasets: [], labels: YEARS };
+  if (!geoData) {
+    console.warn('Geo data not found:', geo, 'for variable:', variable);
+    return { datasets: [], labels: YEARS.map(String) };
+  }
 
   const harmKey = varData.harmonization;
   const labels = YEARS.map(String);
