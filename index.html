@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LA Homeless Count Data Tool — HPRI / USC</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Data source: USC HPRI / Amanda Landrian Gonzalez — Greater Los Angeles Homeless Count, 2019-2025 -->
+
+  <header>
+    <div>
+      <div class="logo">HPRI <span>/ USC Homelessness Policy Research Institute</span></div>
+      <div class="header-subtitle">Greater Los Angeles Homeless Count · Interactive Data Tool</div>
+    </div>
+    <nav class="site-nav">
+      <a href="#" class="nav-link active" data-section="viz-section">Trend Explorer</a>
+      <a href="#" class="nav-link" data-section="lib-section">Data Library</a>
+      <a href="https://hpri.usc.edu" target="_blank" rel="noopener">HPRI ↗</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ══ SECTION 1: TREND EXPLORER ══════════════════════════════════════ -->
+    <section id="viz-section" class="section active">
+
+      <h2>Explore Unsheltered Homelessness Trends · Los Angeles County</h2>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="geo-select">Geography</label>
+          <select id="geo-select">
+            <option value="coc">LA Continuum of Care (CoC)</option>
+            <option value="city">City of Los Angeles</option>
+            <option value="county">LA County (unincorporated)</option>
+            <option value="spa">Service Planning Area (SPA)</option>
+          </select>
+        </div>
+
+        <div class="control-group" id="spa-group" style="display:none">
+          <label for="spa-select">Which SPA</label>
+          <select id="spa-select">
+            <option value="1">SPA 1 — Antelope Valley</option>
+            <option value="2">SPA 2 — San Fernando Valley</option>
+            <option value="3">SPA 3 — San Gabriel Valley</option>
+            <option value="4">SPA 4 — Metro Los Angeles</option>
+            <option value="5">SPA 5 — West Side</option>
+            <option value="6">SPA 6 — South</option>
+            <option value="7">SPA 7 — East LA</option>
+            <option value="8">SPA 8 — South Bay</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="var-select">Demographic Variable</label>
+          <select id="var-select">
+            <optgroup label="Total">
+              <option value="total">Total Unsheltered Adults</option>
+            </optgroup>
+            <optgroup label="Age">
+              <option value="age_1824">Age 18–24</option>
+              <option value="age_2534">Age 25–34</option>
+              <option value="age_3544">Age 35–44</option>
+              <option value="age_4554">Age 45–54</option>
+              <option value="age_5564">Age 55–64</option>
+              <option value="age_65plus">Age 65+</option>
+            </optgroup>
+            <optgroup label="Race / Ethnicity (⚠ break at 2024)">
+              <option value="race_black">Black / African American</option>
+              <option value="race_hispanic">Hispanic / Latino</option>
+              <option value="race_white">White (non-Hispanic)</option>
+            </optgroup>
+            <optgroup label="Veteran Status">
+              <option value="veteran">Veterans</option>
+              <option value="nonveteran">Non-Veterans</option>
+            </optgroup>
+            <optgroup label="Chronic Homelessness (⚠ break at 2022)">
+              <option value="chronic">Chronically Homeless</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div id="harm-alert" class="harmonization-alert">
+        <span class="icon">⚠️</span>
+        <span class="harm-text"></span>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title" id="chart-title">Total Unsheltered Adults · LA Continuum of Care</div>
+        <div class="chart-container">
+          <canvas id="main-chart"></canvas>
+        </div>
+      </div>
+
+      <p class="source-note">
+        Data: HPRI / USC Greater Los Angeles Homeless Count, 2019–2025 (no count conducted in 2021).
+        Estimates reflect unsheltered adults only. Confidence intervals based on jackknife replicate weights.
+        Methodology: USC HPRI / Amanda Landrian Gonzalez.
+Methodology: USC HPRI, led by Amanda Landrian Gonzalez, PhD.
+      </p>
+
+    </section>
+
+    <!-- ══ SECTION 2: DATA LIBRARY ════════════════════════════════════════ -->
+    <section id="lib-section" class="section">
+
+      <h2>Microdata Library</h2>
+
+      <p class="library-intro">
+        De-identified individual- and household-level analytic files from the Greater Los Angeles Homeless Count,
+        available to qualified researchers. All files include design weights and jackknife replicate weights
+        for computing confidence intervals for custom subgroup analyses.
+      </p>
+
+      <table class="library-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>File Type</th>
+            <th>Approx. N</th>
+            <th>Format</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="library-tbody"></tbody>
+      </table>
+
+      <div style="margin-top:1.5rem">
+        <a href="mailto:bhenwood@usc.edu?subject=Request: LAHSA Homeless Count Microdata Access" class="request-btn">
+          Request Data Access
+        </a>
+      </div>
+
+      <p class="access-note">
+        Data requests are reviewed by the HPRI team. Requestors must agree to a data use agreement
+        and describe their intended analysis. Please include your institutional affiliation
+        and research purpose in your email. Contact: <a href="mailto:bhenwood@usc.edu">bhenwood@usc.edu</a>
+      </p>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <span>© 2026 USC Homelessness Policy Research Institute</span>
+    <span>PI: <a href="https://benhenwood.com">Benjamin F. Henwood, PhD</a> · <a href="https://hpri.usc.edu">hpri.usc.edu</a></span>
+    <span>Methodology: Amanda Landrian Gonzalez, PhD · USC H3E Research</span>
+    <span style="margin-left:auto;color:#aaa">Prototype v0.1 · Sample data</span>
+  </footer>
+
+  <script src="assets/data/sample_data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

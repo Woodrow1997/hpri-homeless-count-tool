@@ -1,0 +1,118 @@
+/* HPRI Homeless Count Data Query Tool */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --hpri-red: #990000;
+  --hpri-dark: #1a1a1a;
+  --muted: #555;
+  --border: #ddd;
+  --bg-light: #f8f8f8;
+  --sans: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body { font-family: var(--sans); color: var(--hpri-dark); background: #fff; line-height: 1.6; font-size: 15px; }
+
+/* ── SAMPLE BANNER ── */
+.sample-banner {
+  background: #fff3cd; border-bottom: 2px solid #ffc107;
+  padding: .6rem 1.5rem; font-size: .85rem; text-align: center;
+  font-weight: 600; color: #856404;
+}
+
+/* ── HEADER ── */
+header {
+  background: #fff; border-bottom: 3px solid var(--hpri-red);
+  padding: 1rem 2rem; display: flex; align-items: center; gap: 1.2rem;
+}
+header .logo { font-size: 1.15rem; font-weight: 800; color: var(--hpri-red); letter-spacing: -.01em; }
+header .logo span { color: var(--hpri-dark); font-weight: 400; font-size: .95rem; }
+.header-subtitle { font-size: .82rem; color: var(--muted); margin-top: .1rem; }
+nav.site-nav { margin-left: auto; display: flex; gap: 1.5rem; }
+nav.site-nav a { text-decoration: none; font-size: .85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+nav.site-nav a.active, nav.site-nav a:hover { color: var(--hpri-red); border-bottom: 2px solid var(--hpri-red); }
+
+/* ── LAYOUT ── */
+main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem; }
+.section { display: none; }
+.section.active { display: block; }
+
+h2 { font-size: 1.3rem; margin-bottom: 1rem; color: var(--hpri-dark); }
+h3 { font-size: 1rem; margin-bottom: .5rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+/* ── CONTROLS ── */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+  background: var(--bg-light); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.2rem; margin-bottom: 1.5rem;
+}
+.control-group { display: flex; flex-direction: column; gap: .35rem; min-width: 200px; }
+.control-group label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+select {
+  padding: .45rem .75rem; border: 1px solid var(--border); border-radius: 4px;
+  font-size: .9rem; background: #fff; cursor: pointer;
+  transition: border-color .15s;
+}
+select:focus { outline: none; border-color: var(--hpri-red); }
+
+/* ── HARMONIZATION ALERT ── */
+.harmonization-alert {
+  display: none; background: #fff5f5; border-left: 4px solid var(--hpri-red);
+  border-radius: 0 4px 4px 0; padding: .75rem 1rem; margin-bottom: 1rem;
+  font-size: .85rem; color: #7a0000;
+}
+.harmonization-alert.visible { display: flex; gap: .6rem; align-items: flex-start; }
+.harmonization-alert .icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+
+/* ── CHART ── */
+.chart-wrap {
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 1.2rem; background: #fff; margin-bottom: 1rem;
+}
+.chart-title { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+.chart-container { position: relative; height: 380px; }
+
+/* ── SOURCE NOTE ── */
+.source-note { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
+
+/* ── DATA LIBRARY ── */
+.library-intro { margin-bottom: 1.5rem; font-size: .95rem; color: var(--muted); }
+.library-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.library-table th {
+  background: var(--bg-light); border-bottom: 2px solid var(--border);
+  padding: .6rem 1rem; text-align: left; font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+}
+.library-table td { padding: .6rem 1rem; border-bottom: 1px solid var(--border); }
+.library-table tr:hover td { background: var(--bg-light); }
+.library-table .year-badge {
+  display: inline-block; background: var(--hpri-red); color: #fff;
+  font-weight: 700; font-size: .8rem; padding: .2rem .5rem; border-radius: 3px;
+}
+.request-btn {
+  display: inline-block; margin-top: 1.5rem; padding: .6rem 1.4rem;
+  background: var(--hpri-red); color: #fff; text-decoration: none;
+  border-radius: 4px; font-weight: 700; font-size: .9rem;
+  transition: background .15s;
+}
+.request-btn:hover { background: #7a0000; }
+.access-note {
+  margin-top: 1rem; font-size: .82rem; color: var(--muted);
+  border-left: 3px solid var(--border); padding-left: .75rem;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border); padding: 1rem 2rem;
+  font-size: .8rem; color: var(--muted); display: flex; gap: 2rem; flex-wrap: wrap;
+  margin-top: 2rem;
+}
+footer a { color: var(--hpri-red); text-decoration: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  header { flex-wrap: wrap; }
+  nav.site-nav { margin-left: 0; }
+  .controls { flex-direction: column; }
+  .control-group { min-width: unset; width: 100%; }
+  .chart-container { height: 280px; }
+}
