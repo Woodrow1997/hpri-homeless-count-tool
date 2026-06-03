@@ -90,50 +90,59 @@ function buildChartDatasets(geo, variable) {
     };
   }
 
-  // Has harmonization break — two segments, different colors
+  // Has harmonization break — single line with color change at break year
+  // Simple, reliable: Chart.js segment option colors different parts of the line
   const note = HARMONIZATION_NOTES[harmKey];
-  const breakIdx = YEARS.indexOf(note.breakYear);
+  const breakYr = note.breakYear;
+  const breakIdx = YEARS.indexOf(breakYr);
 
-  // Build separate arrays — nulls stop the line at the segment boundary
-  const seg1Est = geoData.estimate.map((v, i) => i < breakIdx ? v : null);
-  const seg2Est = geoData.estimate.map((v, i) => i >= breakIdx ? v : null);
-
-  // CIs as shaded polygon: use error bar approach via separate upper/lower arrays
-  const seg1Lo  = geoData.lower95.map((v, i) => i < breakIdx ? v : null);
-  const seg1Hi  = geoData.upper95.map((v, i) => i < breakIdx ? v : null);
-  const seg2Lo  = geoData.lower95.map((v, i) => i >= breakIdx ? v : null);
-  const seg2Hi  = geoData.upper95.map((v, i) => i >= breakIdx ? v : null);
-
-  // Build datasets — CI shading via two datasets with fill between by label
+  // CI band (full width, single color)
+  const hasCi = geoData.lower95.some(v => v !== null);
   const datasets = [];
 
-  // Seg 1: pre-break (charcoal solid)
-  const hasCi1 = seg1Lo.some(v => v !== null);
-  if (hasCi1) {
-    datasets.push({ label: '_ci1hi', data: seg1Hi, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: false, order: 10 });
-    datasets.push({ label: '_ci1lo', data: seg1Lo, fill: '-1', backgroundColor: COLORS.ci, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: false, order: 10 });
+  if (hasCi) {
+    // Upper CI
+    datasets.push({
+      label: '_ci_hi',
+      data: geoData.upper95,
+      fill: false,
+      borderWidth: 0,
+      borderColor: 'transparent',
+      backgroundColor: 'transparent',
+      pointRadius: 0,
+      tension: 0.2,
+      spanGaps: true
+    });
+    // Lower CI — fill to upper
+    datasets.push({
+      label: '_ci_lo',
+      data: geoData.lower95,
+      fill: '-1',
+      backgroundColor: 'rgba(56,56,56,0.10)',
+      borderWidth: 0,
+      borderColor: 'transparent',
+      pointRadius: 0,
+      tension: 0.2,
+      spanGaps: true
+    });
   }
-  datasets.push({
-    label: varData.label + ' (2019–' + (YEARS[breakIdx - 1] || '') + ')',
-    data: seg1Est,
-    borderColor: COLORS.lineBreak1, backgroundColor: COLORS.lineBreak1,
-    borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
-    tension: 0.2, fill: false, spanGaps: false, order: 1
-  });
 
-  // Seg 2: post-break (amber/orange, dashed)
-  const hasCi2 = seg2Lo.some(v => v !== null);
-  if (hasCi2) {
-    datasets.push({ label: '_ci2hi', data: seg2Hi, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: false, order: 10 });
-    datasets.push({ label: '_ci2lo', data: seg2Lo, fill: '-1', backgroundColor: COLORS.ci2, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: false, order: 10 });
-  }
+  // Main estimate line — color changes at break year via segment option
   datasets.push({
-    label: varData.label + ' (' + note.breakYear + '+, revised categories)',
-    data: seg2Est,
-    borderColor: COLORS.lineBreak2, backgroundColor: COLORS.lineBreak2,
-    borderDash: [6, 3],
-    borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
-    tension: 0.2, fill: false, spanGaps: false, order: 1
+    label: varData.label,
+    data: geoData.estimate,
+    borderWidth: 2.5,
+    pointRadius: 5,
+    pointHoverRadius: 7,
+    tension: 0.2,
+    fill: false,
+    spanGaps: true,
+    segment: {
+      borderColor: ctx => YEARS[ctx.p1DataIndex] >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1,
+      borderDash: ctx => YEARS[ctx.p1DataIndex] >= breakYr ? [6, 3] : [],
+    },
+    pointBackgroundColor: YEARS.map(yr => yr >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1),
+    pointBorderColor: YEARS.map(yr => yr >= breakYr ? COLORS.lineBreak2 : COLORS.lineBreak1),
   });
 
   return { labels, datasets };
@@ -187,7 +196,7 @@ function renderChart() {
         legend: {
           display: true,
           labels: {
-            filter: item => !item.text.includes('CI Band') && item.text !== 'Lower CI' && item.text !== undefined,
+            filter: item => item.text && !item.text.startsWith('_'),
             font: { size: 12 }
           }
         },
@@ -200,7 +209,7 @@ function renderChart() {
               return ctx.dataset.label + ': ' + val.toLocaleString();
             }
           },
-          filter: item => item.parsed.y !== null
+          filter: item => item.parsed.y !== null && item.dataset.label && !item.dataset.label.startsWith('_')
         }
       },
       scales: {
