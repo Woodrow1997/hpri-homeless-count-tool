@@ -41,16 +41,17 @@ function singleDatasets(variable, geoKey, colorIdx) {
   if (!harmKey) {
     // Simple: one CI band + one estimate line
     const ds = [];
-    if (geoData.lower95 && geoData.lower95.some(v => v !== null)) {
-      ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
-      ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '-1', backgroundColor: col.ci, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
+    const hasCi = geoData.lower95 && geoData.lower95.some(v => v !== null);
+    if (hasCi) {
+      ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '+1', backgroundColor: col.ci, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true, order: 2 });
+      ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true, order: 2 });
     }
     ds.push({
       label,
       data: geoData.estimate,
       borderColor: col.line, backgroundColor: col.line,
       borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
-      tension: 0.2, fill: false, spanGaps: true
+      tension: 0.2, fill: false, spanGaps: true, order: 1
     });
     return ds;
   }
@@ -60,9 +61,10 @@ function singleDatasets(variable, geoKey, colorIdx) {
   const breakYr = note.breakYear;
   const ds = [];
 
-  if (geoData.lower95 && geoData.lower95.some(v => v !== null)) {
-    ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
-    ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '-1', backgroundColor: 'rgba(56,56,56,0.09)', borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true });
+  const hasCiH = geoData.lower95 && geoData.lower95.some(v => v !== null);
+  if (hasCiH) {
+    ds.push({ label: '_lo_' + colorIdx, data: geoData.lower95, fill: '+1', backgroundColor: 'rgba(56,56,56,0.09)', borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true, order: 2 });
+    ds.push({ label: '_hi_' + colorIdx, data: geoData.upper95, fill: false, borderWidth: 0, borderColor: 'transparent', pointRadius: 0, tension: 0.2, spanGaps: true, order: 2 });
   }
   ds.push({
     label: label + ' ⚠',
