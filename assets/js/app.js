@@ -86,8 +86,10 @@ function resolveGeo(varData, geoKey) {
   if (geoKey === 'city') return g.city || g.coc || null;
   if (geoKey === 'county') return g.county || null;
   if (geoKey.startsWith('spa')) {
+    // Try direct key first (e.g. g.spa1), then nested g.spa[n]
+    if (g[geoKey]) return g[geoKey];
     const n = parseInt(geoKey.replace('spa',''));
-    return g.spa && g.spa[n] ? g.spa[n] : null;
+    return (g.spa && g.spa[n]) ? g.spa[n] : null;
   }
   return g.coc || null;
 }
